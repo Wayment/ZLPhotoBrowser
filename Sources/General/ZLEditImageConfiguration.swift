@@ -201,6 +201,7 @@ public extension ZLEditImageConfiguration {
         case mosaic
         case filter
         case adjust
+        case watermark
     }
     
     @objc enum AdjustTool: Int, CaseIterable {

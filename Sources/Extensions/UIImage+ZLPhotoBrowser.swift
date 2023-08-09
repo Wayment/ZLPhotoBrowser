@@ -530,6 +530,20 @@ extension ZLPhotoBrowserWrapper where Base: UIImage {
         }
         return UIImage(named: named, in: Bundle.zlPhotoBrowserBundle, compatibleWith: nil)
     }
+    
+    static func buildImage(color: UIColor, size: CGSize = CGSize(width: 1, height: 1), cornerRadius: CGFloat = 0) -> UIImage? {
+        let rect = CGRect(origin: .zero, size: size)
+        UIGraphicsBeginImageContextWithOptions(rect.size, false, 0.0)
+        let currentContext = UIGraphicsGetCurrentContext()
+        color.setFill()
+        let path = UIBezierPath.init(roundedRect: rect, cornerRadius: cornerRadius)
+        currentContext?.addPath(path.cgPath)
+        currentContext?.fillPath()
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        guard let cgImage = image?.cgImage, let imageOrientation = image?.imageOrientation else { return nil }
+        return UIImage.init(cgImage: cgImage, scale: UIScreen.main.scale, orientation: imageOrientation)
+    }
 }
 
 public extension ZLPhotoBrowserWrapper where Base: CIImage {

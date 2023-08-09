@@ -90,7 +90,7 @@ open class ZLEditImageViewController: UIViewController {
     
     private let adjustTools: [ZLEditImageConfiguration.AdjustTool]
     
-    private var animate = false
+    public var animate = false
     
     private var originalImage: UIImage
     
@@ -125,6 +125,13 @@ open class ZLEditImageViewController: UIViewController {
         let view = UIImageView()
         view.contentMode = .scaleAspectFit
         view.isUserInteractionEnabled = true
+        return view
+    }()
+    
+    // watermark
+    private lazy var watermarkView: ZLWatermarkView = {
+        let view = ZLWatermarkView()
+        view.isHidden = true
         return view
     }()
     
@@ -166,6 +173,8 @@ open class ZLEditImageViewController: UIViewController {
     private var filterCollectionView: UICollectionView?
     
     private var adjustCollectionView: UICollectionView?
+    
+    private var watermarkToolsView: ZLEditWatermarkToolsView?
     
     private var adjustSlider: ZLAdjustSlider?
     
@@ -496,6 +505,9 @@ open class ZLEditImageViewController: UIViewController {
         drawColorCollectionView?.frame = CGRect(x: 20, y: 30, width: revokeBtn.zl.left - 20 - 10, height: drawColViewH)
         
         adjustCollectionView?.frame = CGRect(x: 20, y: 20, width: view.zl.width - 40, height: adjustColViewH)
+        
+        watermarkToolsView?.frame = CGRect(x: 0, y: view.zl.height - 160 - insets.bottom - 60, width: view.zl.width, height: 160)
+        
         if ZLPhotoUIConfiguration.default().adjustSliderType == .vertical {
             adjustSlider?.frame = CGRect(x: view.zl.width - 60, y: view.zl.height / 2 - 100, width: 60, height: 200)
         } else {
@@ -623,6 +635,7 @@ open class ZLEditImageViewController: UIViewController {
         mosaicImageLayer?.frame = imageView.bounds
         mosaicImageLayerMaskLayer?.frame = imageView.bounds
         drawingImageView.frame = imageView.frame
+        watermarkView.frame = imageView.frame
         stickersContainer.frame = imageView.frame
         
         // 针对于长图的优化
@@ -645,6 +658,7 @@ open class ZLEditImageViewController: UIViewController {
         view.addSubview(mainScrollView)
         mainScrollView.addSubview(containerView)
         containerView.addSubview(imageView)
+        containerView.addSubview(watermarkView)
         containerView.addSubview(drawingImageView)
         containerView.addSubview(stickersContainer)
         
@@ -739,6 +753,16 @@ open class ZLEditImageViewController: UIViewController {
             view.addSubview(adjustSlider!)
         }
         
+        if tools.contains(.watermark) {
+            let tView = ZLEditWatermarkToolsView()
+            tView.changeWatermarkBlock = {[weak self] in
+                self?.watermarkBtnClick()
+            }
+            view.addSubview(tView)
+            tView.isHidden = true
+            watermarkToolsView = tView
+        }
+        
         bottomShadowView.addSubview(revokeBtn)
         if canRedo {
             let btn = UIButton(type: .custom)
@@ -816,6 +840,7 @@ open class ZLEditImageViewController: UIViewController {
         let transform = CGAffineTransform(rotationAngle: angle.zl.toPi)
         imageView.transform = transform
         drawingImageView.transform = transform
+        watermarkView.transform = transform
         stickersContainer.transform = transform
     }
     
@@ -840,6 +865,7 @@ open class ZLEditImageViewController: UIViewController {
         filterCollectionView?.isHidden = true
         adjustCollectionView?.isHidden = true
         adjustSlider?.isHidden = true
+        watermarkToolsView?.isHidden = true
     }
     
     private func clipBtnClick() {
@@ -903,6 +929,7 @@ open class ZLEditImageViewController: UIViewController {
         filterCollectionView?.isHidden = true
         adjustCollectionView?.isHidden = true
         adjustSlider?.isHidden = true
+        watermarkToolsView?.isHidden = true
         revokeBtn.isHidden = !isSelected
         revokeBtn.isEnabled = !mosaicPaths.isEmpty
         redoBtn?.isHidden = !isSelected
@@ -923,6 +950,7 @@ open class ZLEditImageViewController: UIViewController {
         filterCollectionView?.isHidden = !isSelected
         adjustCollectionView?.isHidden = true
         adjustSlider?.isHidden = true
+        watermarkToolsView?.isHidden = true
     }
     
     private func adjustBtnClick() {
@@ -939,8 +967,25 @@ open class ZLEditImageViewController: UIViewController {
         filterCollectionView?.isHidden = true
         adjustCollectionView?.isHidden = !isSelected
         adjustSlider?.isHidden = !isSelected
+        watermarkToolsView?.isHidden = true
         
         generateAdjustImageRef()
+    }
+    
+    private func watermarkBtnClick() {
+        drawColorCollectionView?.isHidden = true
+        revokeBtn.isHidden = true
+        redoBtn?.isHidden = true
+        filterCollectionView?.isHidden = true
+        adjustCollectionView?.isHidden = true
+        adjustSlider?.isHidden = true
+        watermarkToolsView?.isHidden = false
+        
+        watermarkView.isHidden = false
+        if let toolsView = watermarkToolsView {
+            watermarkView.reload(toolsView.watermark, color: toolsView.textColor, fontSize: toolsView.textSize, fontAlpha: toolsView.textAlpha)
+            watermarkView.watermark = toolsView.watermark
+        }
     }
     
     private func changeAdjustTool(_ tool: ZLEditImageConfiguration.AdjustTool) {
@@ -970,7 +1015,7 @@ open class ZLEditImageViewController: UIViewController {
         }
         
         var hasEdit = true
-        if drawPaths.isEmpty, editRect.size == imageSize, angle == 0, mosaicPaths.isEmpty, imageStickers.isEmpty, textStickers.isEmpty, currentFilter.applier == nil, brightness == 0, contrast == 0, saturation == 0 {
+        if drawPaths.isEmpty, editRect.size == imageSize, angle == 0, mosaicPaths.isEmpty, imageStickers.isEmpty, textStickers.isEmpty, currentFilter.applier == nil, brightness == 0, contrast == 0, saturation == 0, watermarkView.watermark.isEmpty {
             hasEdit = false
         }
         
@@ -1075,7 +1120,7 @@ open class ZLEditImageViewController: UIViewController {
                     toImageScale = ZLEditImageViewController.maxDrawLineImageWidth / size.height
                 }
                 
-                let path = ZLDrawPath(pathColor: currentDrawColor, pathWidth: drawLineWidth / mainScrollView.zoomScale, ratio: ratio / originalRatio / toImageScale, startPoint: point)
+                let path = ZLDrawPath(pathColor: currentDrawColor, pathWidth: drawLineWidth / mainScrollView.zoomScale, ratio: ratio / originalRatio / toImageScale, startPoint: point, isEraser: false)
                 drawPaths.append(path)
                 redoDrawPaths = drawPaths
             } else if pan.state == .changed {
@@ -1196,12 +1241,14 @@ open class ZLEditImageViewController: UIViewController {
                 self.topShadowView.alpha = 1
                 self.bottomShadowView.alpha = 1
                 self.adjustSlider?.alpha = 1
+                self.watermarkToolsView?.alpha = 1
             }
         } else {
             UIView.animate(withDuration: 0.25) {
                 self.topShadowView.alpha = 0
                 self.bottomShadowView.alpha = 0
                 self.adjustSlider?.alpha = 0
+                self.watermarkToolsView?.alpha = 0
             }
         }
     }
@@ -1430,6 +1477,12 @@ open class ZLEditImageViewController: UIViewController {
             stickersContainer.layer.render(in: context)
             context.concatenate(CGAffineTransform(scaleX: 1 / scale, y: 1 / scale))
         }
+        if !watermarkView.isHidden && !watermarkView.watermark.isEmpty, let context = UIGraphicsGetCurrentContext() {
+            let scale = imageSize.width / watermarkView.frame.width
+            context.concatenate(CGAffineTransform(scaleX: scale, y: scale))
+            watermarkView.layer.render(in: context)
+            context.concatenate(CGAffineTransform(scaleX: 1 / scale, y: 1 / scale))
+        }
         
         let temp = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
@@ -1457,10 +1510,16 @@ extension ZLEditImageViewController: UIGestureRecognizerDelegate {
             return false
         }
         if gestureRecognizer is UITapGestureRecognizer {
+            if let wView = watermarkToolsView, !wView.isHidden, wView.alpha == 1 {
+                let p = gestureRecognizer.location(in: view)
+                if wView.frame.contains(p) {
+                    return false
+                }
+            }
             if bottomShadowView.alpha == 1 {
                 let p = gestureRecognizer.location(in: view)
                 return !bottomShadowView.frame.contains(p)
-            } else {
+            } else{
                 return true
             }
         } else if gestureRecognizer is UIPanGestureRecognizer {
@@ -1611,6 +1670,8 @@ extension ZLEditImageViewController: UICollectionViewDataSource, UICollectionVie
                 filterBtnClick()
             case .adjust:
                 adjustBtnClick()
+            case .watermark:
+                watermarkBtnClick()
             }
         } else if collectionView == drawColorCollectionView {
             currentDrawColor = drawColors[indexPath.row]
@@ -1656,6 +1717,7 @@ extension ZLEditImageViewController: UICollectionViewDataSource, UICollectionVie
 // MARK: ZLTextStickerViewDelegate
 
 extension ZLEditImageViewController: ZLStickerViewDelegate {
+    
     func stickerBeginOperation(_ sticker: UIView) {
         setToolView(show: false)
         ashbinView.layer.removeAllAnimations()
@@ -1742,6 +1804,14 @@ extension ZLEditImageViewController: ZLStickerViewDelegate {
             textSticker.changeSize(to: newSize)
         }
     }
+    
+    func stickerCopy(_ textSticker: ZLTextStickerView) {
+        addTextStickersView(textSticker.text, textColor: textSticker.textColor, image: textSticker.image, style: textSticker.style)
+    }
+    
+    func stickerDelete(_ textSticker: ZLTextStickerView) {
+        textSticker.removeFromSuperview()
+    }
 }
 
 // MARK: 涂鸦path
@@ -1755,8 +1825,11 @@ public class ZLDrawPath: NSObject {
     
     private let shapeLayer: CAShapeLayer
     
-    init(pathColor: UIColor, pathWidth: CGFloat, ratio: CGFloat, startPoint: CGPoint) {
+    private let isEraser: Bool
+    
+    init(pathColor: UIColor, pathWidth: CGFloat, ratio: CGFloat, startPoint: CGPoint, isEraser: Bool) {
         self.pathColor = pathColor
+        self.isEraser = isEraser
         path = UIBezierPath()
         path.lineWidth = pathWidth / ratio
         path.lineCapStyle = .round
@@ -1782,8 +1855,12 @@ public class ZLDrawPath: NSObject {
     }
     
     func drawPath() {
-        pathColor.set()
-        path.stroke()
+        if isEraser {
+            path.stroke(with: .clear, alpha: 1.0)
+        } else {
+            pathColor.set()
+            path.stroke()
+        }
     }
 }
 

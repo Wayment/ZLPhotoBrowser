@@ -49,6 +49,14 @@ class ZLTextStickerView: ZLBaseStickerView<ZLTextStickerState> {
             imageView.image = image
         }
     }
+    
+    private lazy var optionView: ZLTextStickerOptionView = {
+        let view = ZLTextStickerOptionView()
+        view.deleteButton.addTarget(self, action: #selector(deleteClick), for: .touchUpInside)
+        view.copyButton.addTarget(self, action: #selector(copyClick), for: .touchUpInside)
+        view.modifyButton.addTarget(self, action: #selector(modifyClick), for: .touchUpInside)
+        return view
+    }()
 
     // Convert all states to model.
     override var state: ZLTextStickerState {
@@ -105,7 +113,9 @@ class ZLTextStickerView: ZLBaseStickerView<ZLTextStickerState> {
         self.image = image
         super.init(originScale: originScale, originAngle: originAngle, originFrame: originFrame, gesScale: gesScale, gesRotation: gesRotation, totalTranslationPoint: totalTranslationPoint, showBorder: showBorder)
         
+        borderView.layer.borderWidth = 0
         borderView.addSubview(imageView)
+        borderView.insertSubview(optionView, at: 0)
     }
     
     @available(*, unavailable)
@@ -115,6 +125,7 @@ class ZLTextStickerView: ZLBaseStickerView<ZLTextStickerState> {
     
     override func setupUIFrameWhenFirstLayout() {
         imageView.frame = borderView.bounds.insetBy(dx: Self.edgeInset, dy: Self.edgeInset)
+        optionView.frame = bounds
     }
     
     override func tapAction(_ ges: UITapGestureRecognizer) {
@@ -152,6 +163,7 @@ class ZLTextStickerView: ZLBaseStickerView<ZLTextStickerState> {
         originFrame = of
         
         imageView.frame = borderView.bounds.insetBy(dx: Self.edgeInset, dy: Self.edgeInset)
+        optionView.frame = bounds
         
         // Readd zoom scale.
         transform = transform.scaledBy(x: originScale, y: originScale)
@@ -168,6 +180,22 @@ class ZLTextStickerView: ZLBaseStickerView<ZLTextStickerState> {
         size.height += Self.edgeInset * 2
         return size
     }
+    
+    override func hiddenBorder(_ isHidden: Bool) {
+        super.hiddenBorder(isHidden)
+        optionView.isHidden = isHidden
+    }
+    
+    @objc func deleteClick() {
+        delegate?.stickerDelete(self)
+    }
+    @objc func copyClick() {
+        delegate?.stickerCopy(self)
+    }
+    @objc func modifyClick() {
+        delegate?.sticker(self, editText: text)
+    }
+    
 }
 
 public class ZLTextStickerState: NSObject {
@@ -205,5 +233,83 @@ public class ZLTextStickerState: NSObject {
         self.gesRotation = gesRotation
         self.totalTranslationPoint = totalTranslationPoint
         super.init()
+    }
+}
+
+
+class ZLTextStickerOptionView: UIView {
+    
+    private let iconWH: CGFloat = 23
+    
+    private lazy var backView: UIView = {
+        let view = UIView()
+        view.layer.borderColor = UIColor.zl.hex(0x1C83FF).cgColor
+        view.layer.borderWidth = 2
+        return view
+    }()
+    
+    lazy var copyButton: UIButton = {
+        let btn = UIButton(type: .custom)
+        btn.setImage(.zl.getImage("zl_editimage_text_copy"), for: .normal)
+        return btn
+    }()
+    
+    lazy var deleteButton: UIButton = {
+        let btn = UIButton(type: .custom)
+        btn.setImage(.zl.getImage("zl_editimage_text_delete"), for: .normal)
+        return btn
+    }()
+    
+    lazy var rotateButton: UIButton = {
+        let btn = UIButton(type: .custom)
+        btn.setImage(.zl.getImage("zl_editimage_text_rotate"), for: .normal)
+        return btn
+    }()
+    
+    lazy var modifyButton: UIButton = {
+        let btn = UIButton(type: .custom)
+        btn.setImage(.zl.getImage("zl_ditimage_text_input"), for: .normal)
+        btn.setImage(.zl.getImage("zl_ditimage_text_input"), for: .disabled)
+        btn.isEnabled = false
+        return btn
+    }()
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupUI()
+    }
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+    }
+    
+    
+    private func setupUI() {
+        addSubview(backView)
+        addSubview(copyButton)
+        addSubview(deleteButton)
+        addSubview(rotateButton)
+        addSubview(modifyButton)
+        
+        let margin = iconWH * 0.5
+        backView.snp.makeConstraints { make in
+            make.edges.equalToSuperview().inset(UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin))
+        }
+        deleteButton.snp.makeConstraints { make in
+            make.top.left.equalToSuperview()
+            make.size.equalTo(CGSize(width: iconWH, height: iconWH))
+        }
+        copyButton.snp.makeConstraints { make in
+            make.top.right.equalToSuperview()
+            make.size.equalTo(CGSize(width: iconWH, height: iconWH))
+        }
+        modifyButton.snp.makeConstraints { make in
+            make.bottom.left.equalToSuperview()
+            make.size.equalTo(CGSize(width: iconWH, height: iconWH))
+        }
+        rotateButton.snp.makeConstraints { make in
+            make.bottom.right.equalToSuperview()
+            make.size.equalTo(CGSize(width: iconWH, height: iconWH))
+        }
     }
 }

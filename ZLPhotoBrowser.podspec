@@ -26,6 +26,8 @@ Pod::Spec.new do |s|
   s.requires_arc          = true
   s.frameworks            = 'UIKit','Photos','PhotosUI','AVFoundation','CoreMotion', 'Accelerate'
 
+  s.dependency 'SnapKit'
+
   s.resources             = 'Sources/*.{png,bundle}'
 
   s.subspec "Core" do |sp|

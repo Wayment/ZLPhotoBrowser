@@ -21,6 +21,10 @@ protocol ZLStickerViewDelegate: NSObject {
     func stickerDidTap(_ sticker: UIView)
     
     func sticker(_ textSticker: ZLTextStickerView, editText text: String)
+    
+    func stickerCopy(_ textSticker: ZLTextStickerView)
+    func stickerDelete(_ textSticker: ZLTextStickerView)
+
 }
 
 protocol ZLStickerViewAdditional: NSObject {
@@ -124,11 +128,11 @@ class ZLBaseStickerView<T>: UIView, UIGestureRecognizerDelegate {
         
         addGestureRecognizer(tapGes)
         addGestureRecognizer(pinchGes)
-        
+
         let rotationGes = UIRotationGestureRecognizer(target: self, action: #selector(rotationAction(_:)))
         rotationGes.delegate = self
         addGestureRecognizer(rotationGes)
-        
+
         addGestureRecognizer(panGes)
         tapGes.require(toFail: panGes)
     }
@@ -260,9 +264,9 @@ class ZLBaseStickerView<T>: UIView, UIGestureRecognizerDelegate {
         if isOn, !onOperation {
             onOperation = true
             cleanTimer()
-            borderView.layer.borderColor = UIColor.white.cgColor
             superview?.bringSubviewToFront(self)
             delegate?.stickerBeginOperation(self)
+            hiddenBorder(false)
         } else if !isOn, onOperation {
             onOperation = false
             startTimer()
@@ -293,12 +297,12 @@ class ZLBaseStickerView<T>: UIView, UIGestureRecognizerDelegate {
     }
     
     @objc private func hideBorder() {
-        borderView.layer.borderColor = UIColor.clear.cgColor
+        hiddenBorder(true)
     }
     
     func startTimer() {
         cleanTimer()
-        borderView.layer.borderColor = UIColor.white.cgColor
+        hiddenBorder(false)
         timer = Timer.scheduledTimer(timeInterval: 2, target: ZLWeakProxy(target: self), selector: #selector(hideBorder), userInfo: nil, repeats: false)
         RunLoop.current.add(timer!, forMode: .common)
     }
@@ -306,6 +310,14 @@ class ZLBaseStickerView<T>: UIView, UIGestureRecognizerDelegate {
     private func cleanTimer() {
         timer?.invalidate()
         timer = nil
+    }
+    
+    func hiddenBorder(_ isHidden: Bool) {
+        if isHidden {
+            borderView.layer.borderColor = UIColor.clear.cgColor
+        } else {
+            borderView.layer.borderColor = UIColor.white.cgColor
+        }
     }
     
     // MARK: UIGestureRecognizerDelegate

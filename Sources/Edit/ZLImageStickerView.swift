@@ -111,6 +111,8 @@ class ZLImageStickerView: ZLBaseStickerView<ZLImageStickerState> {
         size.height += Self.edgeInset * 2
         return size
     }
+    
+    
 }
 
 public class ZLImageStickerState: NSObject {
