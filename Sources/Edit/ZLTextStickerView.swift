@@ -138,6 +138,51 @@ class ZLTextStickerView: ZLBaseStickerView<ZLTextStickerState> {
         }
     }
     
+    //  实现单指旋转
+    private var isSingleRotate: Bool = false
+    private var lastPanAngle: CGFloat = 0
+    override func panAction(_ ges: UIPanGestureRecognizer) {
+        guard gesIsEnabled else { return }
+        
+        if ges.state == .began {
+            let pointInSelf = ges.location(in: self)
+            isSingleRotate = optionView.rotateButton.frame.insetBy(dx: -10, dy: -10).contains(pointInSelf)
+        }
+        
+        guard isSingleRotate else {
+            super.panAction(ges)
+            return
+        }
+        
+        // 单指旋转逻辑
+        let currentPoint = ges.location(in: self.superview)
+        let center = self.translationCenter
+        let distance = Self.getDistance(point1: currentPoint, point2: center)
+        let angle = atan2(currentPoint.y - center.y, currentPoint.x - center.x)
+        
+        if ges.state == .began {
+            setOperation(true)
+            self.lastPanAngle = angle
+        } else if ges.state == .changed {
+            let final = angle - self.lastPanAngle
+            gesRotation += final
+            updateTransform()
+            self.lastPanAngle = angle
+        } else if ges.state == .ended || ges.state == .cancelled {
+            isSingleRotate = false
+            setOperation(false)
+        }
+        
+
+    }
+    
+    class func getDistance(point1: CGPoint, point2: CGPoint) -> CGFloat {
+        let diffX = point2.x - point1.x
+        let diffY = point2.y - point1.y
+        
+        return sqrt(diffX * diffX + diffY * diffY)
+    }
+    
     func changeSize(to newSize: CGSize) {
         // Revert zoom scale.
         transform = transform.scaledBy(x: 1 / originScale, y: 1 / originScale)

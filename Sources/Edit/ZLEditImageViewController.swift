@@ -427,6 +427,9 @@ open class ZLEditImageViewController: UIViewController {
         if ts.contains(.imageSticker), editConfig.imageStickerContainerView == nil {
             ts.removeAll { $0 == .imageSticker }
         }
+        if ts.contains(.watermark), !editConfig.isSupportWatermark {
+            ts.removeAll { $0 == .watermark }
+        }
         tools = ts
         adjustTools = editConfig.adjustTools
         selectedAdjustTool = editConfig.adjustTools.first
@@ -1719,6 +1722,7 @@ extension ZLEditImageViewController: UICollectionViewDataSource, UICollectionVie
 extension ZLEditImageViewController: ZLStickerViewDelegate {
     
     func stickerBeginOperation(_ sticker: UIView) {
+        guard !sticker.isKind(of: ZLTextStickerView.self) else { return }
         setToolView(show: false)
         ashbinView.layer.removeAllAnimations()
         ashbinView.isHidden = false
@@ -1740,6 +1744,7 @@ extension ZLEditImageViewController: ZLStickerViewDelegate {
     }
     
     func stickerOnOperation(_ sticker: UIView, panGes: UIPanGestureRecognizer) {
+        guard !sticker.isKind(of: ZLTextStickerView.self) else { return }
         let point = panGes.location(in: view)
         if ashbinView.frame.contains(point) {
             ashbinView.backgroundColor = .zl.trashCanBackgroundTintColor
@@ -1763,6 +1768,7 @@ extension ZLEditImageViewController: ZLStickerViewDelegate {
     }
     
     func stickerEndOperation(_ sticker: UIView, panGes: UIPanGestureRecognizer) {
+        guard !sticker.isKind(of: ZLTextStickerView.self) else { return }
         setToolView(show: true)
         ashbinView.layer.removeAllAnimations()
         ashbinView.isHidden = true

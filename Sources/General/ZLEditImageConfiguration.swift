@@ -190,6 +190,7 @@ public class ZLEditImageConfiguration: NSObject {
     
     /// Whether to support redo in graffiti and mosaic tools. Defaults to false
     public var canRedo = false
+    public var isSupportWatermark = false
 }
 
 public extension ZLEditImageConfiguration {

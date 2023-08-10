@@ -73,6 +73,10 @@ class ZLBaseStickerView<T>: UIView, UIGestureRecognizerDelegate {
     
     var originFrame: CGRect
     
+    var translationCenter: CGPoint {
+        return CGPoint(x: center.x+totalTranslationPoint.x, y: center.y+totalTranslationPoint.y)
+    }
+    
     lazy var tapGes = UITapGestureRecognizer(target: self, action: #selector(tapAction(_:)))
     
     lazy var pinchGes: UIPinchGestureRecognizer = {
