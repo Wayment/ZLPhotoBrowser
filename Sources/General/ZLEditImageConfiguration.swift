@@ -138,7 +138,7 @@ public class ZLEditImageConfiguration: NSObject {
     }
     
     /// The default text sticker color. If this color not in textStickerTextColors, will pick the first color in textStickerTextColors as the default.
-    public var textStickerDefaultTextColor = UIColor.white
+    public var textStickerDefaultTextColor = UIColor.black
     
     private var pri_filters: [ZLFilter] = ZLFilter.all
     /// Filters for image editor.

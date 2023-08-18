@@ -1158,6 +1158,9 @@ class ZLClipOverlayView: UIView {
         super.init(frame: frame)
         backgroundColor = .clear
         clipsToBounds = false
+        layer.shadowOpacity = 0.5
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOffset = CGSize(width: 0.5, height: 0.5)
         // 两种方法实现裁剪框，drawrect动画效果 更好一点
 //        func line(_ isCorner: Bool) -> UIView {
 //            let line = UIView()

@@ -54,8 +54,8 @@ class ZLEditToolCell: UICollectionViewCell {
                 icon.image = .zl.getImage("zl_adjust")
                 icon.highlightedImage = .zl.getImage("zl_adjust_selected")
             case .watermark:
-                icon.image = .zl.getImage("zl_textSticker")
-                icon.highlightedImage = .zl.getImage("zl_textSticker")
+                icon.image = .zl.getImage("zl_tool_wartermark")
+                icon.highlightedImage = .zl.getImage("zl_tool_wartermark")
             }
             if let color = UIColor.zl.imageEditorToolIconTintColor {
                 icon.highlightedImage = icon.highlightedImage?

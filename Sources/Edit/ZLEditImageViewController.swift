@@ -912,10 +912,17 @@ open class ZLEditImageViewController: UIViewController {
     }
     
     private func textStickerBtnClick() {
+        let isSelected = selectedTool != .textSticker
+        if isSelected {
+            selectedTool = .textSticker
+        } else {
+            selectedTool = nil
+        }
         showInputTextVC { [weak self] text, textColor, image, style in
             guard !text.isEmpty, let image = image else { return }
             self?.addTextStickersView(text, textColor: textColor, image: image, style: style)
         }
+        drawColorCollectionView?.isHidden = true
     }
     
     private func mosaicBtnClick() {
@@ -976,6 +983,12 @@ open class ZLEditImageViewController: UIViewController {
     }
     
     private func watermarkBtnClick() {
+        let isSelected = selectedTool != .watermark
+        if isSelected {
+            selectedTool = .watermark
+        } else {
+            selectedTool = nil
+        }
         drawColorCollectionView?.isHidden = true
         revokeBtn.isHidden = true
         redoBtn?.isHidden = true
