@@ -26,7 +26,7 @@
 
 import UIKit
 
-class ZLInputTextViewController: UIViewController {
+public class ZLInputTextViewController: UIViewController {
     private static let toolViewHeight: CGFloat = 70
     
     private let image: UIImage?
@@ -119,13 +119,13 @@ class ZLInputTextViewController: UIViewController {
     private let maxTextCount = 100
     
     /// text, textColor, image, style
-    var endInput: ((String, UIColor, UIImage?, ZLInputTextStyle) -> Void)?
+    public var endInput: ((String, UIColor, UIImage?, ZLInputTextStyle) -> Void)?
     
-    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+    public override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .portrait
     }
     
-    override var prefersStatusBarHidden: Bool {
+    public override var prefersStatusBarHidden: Bool {
         return true
     }
     
@@ -133,7 +133,7 @@ class ZLInputTextViewController: UIViewController {
         zl_debugPrint("ZLInputTextViewController deinit")
     }
     
-    init(image: UIImage?, text: String? = nil, textColor: UIColor? = nil, style: ZLInputTextStyle = .normal) {
+    public init(image: UIImage?, text: String? = nil, textColor: UIColor? = nil, style: ZLInputTextStyle = .normal) {
         self.image = image
         self.text = text ?? ""
         if let textColor = textColor {
@@ -155,7 +155,7 @@ class ZLInputTextViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func viewDidLoad() {
+    public override func viewDidLoad() {
         super.viewDidLoad()
 
         setupUI()
@@ -164,12 +164,12 @@ class ZLInputTextViewController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIApplication.keyboardWillHideNotification, object: nil)
     }
     
-    override func viewWillAppear(_ animated: Bool) {
+    public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         textView.becomeFirstResponder()
     }
     
-    override func viewDidLayoutSubviews() {
+    public override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         
         let btnY = max(deviceSafeAreaInsets().top, 20) + 20
@@ -324,11 +324,11 @@ class ZLInputTextViewController: UIViewController {
 }
 
 extension ZLInputTextViewController: UICollectionViewDelegate, UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return ZLPhotoConfiguration.default().editImageConfiguration.textStickerTextColors.count
     }
     
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ZLDrawColorCell.zl.identifier, for: indexPath) as! ZLDrawColorCell
         
         let c = ZLPhotoConfiguration.default().editImageConfiguration.textStickerTextColors[indexPath.row]
@@ -344,7 +344,7 @@ extension ZLInputTextViewController: UICollectionViewDelegate, UICollectionViewD
         return cell
     }
     
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         currentColor = ZLPhotoConfiguration.default().editImageConfiguration.textStickerTextColors[indexPath.row]
         collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
         collectionView.reloadData()
@@ -470,7 +470,7 @@ extension ZLInputTextViewController {
 }
 
 extension ZLInputTextViewController: UITextViewDelegate {
-    func textViewDidChange(_ textView: UITextView) {
+    public func textViewDidChange(_ textView: UITextView) {
         let markedTextRange = textView.markedTextRange
         guard markedTextRange == nil || (markedTextRange?.isEmpty ?? true) else {
             return
@@ -483,7 +483,7 @@ extension ZLInputTextViewController: UITextViewDelegate {
         }
     }
     
-    func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+    public func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
         if text == "\n" {
             doneBtnClick()
             return false
@@ -493,7 +493,7 @@ extension ZLInputTextViewController: UITextViewDelegate {
 }
 
 extension ZLInputTextViewController: NSLayoutManagerDelegate {
-    func layoutManager(_ layoutManager: NSLayoutManager, didCompleteLayoutFor textContainer: NSTextContainer?, atEnd layoutFinishedFlag: Bool) {
+    public func layoutManager(_ layoutManager: NSLayoutManager, didCompleteLayoutFor textContainer: NSTextContainer?, atEnd layoutFinishedFlag: Bool) {
         guard layoutFinishedFlag else {
             return
         }

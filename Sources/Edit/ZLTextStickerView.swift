@@ -157,7 +157,6 @@ class ZLTextStickerView: ZLBaseStickerView<ZLTextStickerState> {
         // 单指旋转逻辑
         let currentPoint = ges.location(in: self.superview)
         let center = self.translationCenter
-        let distance = Self.getDistance(point1: currentPoint, point2: center)
         let angle = atan2(currentPoint.y - center.y, currentPoint.x - center.x)
         
         if ges.state == .began {
@@ -174,13 +173,6 @@ class ZLTextStickerView: ZLBaseStickerView<ZLTextStickerState> {
         }
         
 
-    }
-    
-    class func getDistance(point1: CGPoint, point2: CGPoint) -> CGFloat {
-        let diffX = point2.x - point1.x
-        let diffY = point2.y - point1.y
-        
-        return sqrt(diffX * diffX + diffY * diffY)
     }
     
     func changeSize(to newSize: CGSize) {
